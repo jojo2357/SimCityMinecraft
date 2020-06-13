@@ -1,0 +1,6 @@
+{
+    "parent": "block/cube_all",
+    "textures": {
+        "all": "simcityminecraft:blocks/sim_light_black"
+    }
+}

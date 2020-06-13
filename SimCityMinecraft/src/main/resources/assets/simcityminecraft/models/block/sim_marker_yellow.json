@@ -1,0 +1,6 @@
+{
+    "parent": "block/template_torch",
+    "textures": {
+        "torch": "simcityminecraft:blocks/sim_marker_yellow"
+    }
+}

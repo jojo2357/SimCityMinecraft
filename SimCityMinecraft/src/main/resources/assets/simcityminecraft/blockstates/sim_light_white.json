@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "simcityminecraft:block/sim_light_white" }
+    }
+}

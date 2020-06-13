@@ -1,0 +1,6 @@
+{
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "simcityminecraft:items/example_item"
+	}
+}

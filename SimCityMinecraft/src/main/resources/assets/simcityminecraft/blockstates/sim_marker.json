@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "colorstate=1": { "model": "simcityminecraft:block/sim_marker_red" },
+        "colorstate=2": { "model": "simcityminecraft:block/sim_marker" },
+        "colorstate=3": { "model": "simcityminecraft:block/sim_marker_green" }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "TT",
+            "TT"
+        ],
+    "key": {
+        "T": {
+            "item": "minecraft:torch"
+        }
+    },
+    "result": {
+        "item": "simcityminecraft:sim_light_white"
+    }
+}
