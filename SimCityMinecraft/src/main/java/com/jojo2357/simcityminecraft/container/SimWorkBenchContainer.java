@@ -24,11 +24,9 @@ public class SimWorkBenchContainer extends Container{
 		super(ModContainers.SIM_WORK_BENCH.get(), windowId);
 		this.tileEntity = tileEntity;
 		this.canInteractWithCallable = IWorldPosCallable.of(tileEntity.getWorld(), tileEntity.getPos());
-		
-		System.out.println(this.canInteractWithCallable);
 
 		// Main Inventory
-		int startX = 8;
+		/*int startX = 8;
 		int startY = 18;
 		int slotSizePlus2 = 18;
 		for (int row = 0; row < 4; ++row) {
@@ -51,7 +49,7 @@ public class SimWorkBenchContainer extends Container{
 		int hotbarY = startPlayerInvY + (startPlayerInvY / 2) + 7;
 		for (int column = 0; column < 9; ++column) {
 			this.addSlot(new Slot(playerInventory, column, startX + (column * slotSizePlus2), hotbarY));
-		}
+		}*/
 	}
 
 	private static SimWorkBenchTileEntity getTileEntity(final PlayerInventory playerInventory,
@@ -74,27 +72,4 @@ public class SimWorkBenchContainer extends Container{
 		return isWithinUsableDistance(canInteractWithCallable, playerIn, ModBlocks.SIM_WORK_BENCH.get());
 	}
 
-	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
-		ItemStack itemstack = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
-		if (slot != null && slot.getHasStack()) {
-			ItemStack itemstack1 = slot.getStack();
-			itemstack = itemstack1.copy();
-			if (index < 36) {
-				if (!this.mergeItemStack(itemstack1, 36, this.inventorySlots.size(), true)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (!this.mergeItemStack(itemstack1, 0, 36, false)) {
-				return ItemStack.EMPTY;
-			}
-
-			if (itemstack1.isEmpty()) {
-				slot.putStack(ItemStack.EMPTY);
-			} else {
-				slot.onSlotChanged();
-			}
-		}
-		return itemstack;
-	}
 }

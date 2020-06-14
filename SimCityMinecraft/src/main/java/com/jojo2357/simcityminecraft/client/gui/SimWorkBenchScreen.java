@@ -1,10 +1,15 @@
 package com.jojo2357.simcityminecraft.client.gui;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
 import com.jojo2357.simcityminecraft.Main;
 import com.jojo2357.simcityminecraft.container.SimWorkBenchContainer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -45,5 +50,11 @@ public class SimWorkBenchScreen extends ContainerScreen<SimWorkBenchContainer> {
 		int x = (this.width - this.xSize) / 2;
 		int y = (this.height - this.ySize) / 2;
 		this.blit(x, y, 0, 0, this.xSize, this.ySize);
+		this.addButton(new ButtonWidget(10, 10, 50, 20, "test", 1));
+		this.addButton(new ButtonWidget(10, 100, 50, 20, "test", 2));
+	}
+	
+	public static void buttonClicked(int indexClicked) {
+		
 	}
 }

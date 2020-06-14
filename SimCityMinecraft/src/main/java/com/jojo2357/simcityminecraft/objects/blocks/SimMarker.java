@@ -5,6 +5,8 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import com.jojo2357.simcityminecraft.Main;
+import com.jojo2357.simcityminecraft.init.ModBlocks;
+import com.jojo2357.simcityminecraft.util.handler.AreaHandler;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -23,13 +25,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class SimMarker extends TorchBlock{
 	
-	
-	
 	public static final IntegerProperty COLORSTATE = IntegerProperty.create("colorstate", 1, 3);
 	
-	public SimMarker(Properties properties) {
-		super(properties);;
-		// TODO Auto-generated constructor stub
+	public SimMarker(Properties properties, int blockState) {
+		super(properties);
+		this.setDefaultState(this.stateContainer.getBaseState().with(COLORSTATE, blockState));
 	}
 	
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> p_206840_1_) {
@@ -41,18 +41,21 @@ public class SimMarker extends TorchBlock{
     {
         BlockState blockState = blockItemUseContext.getWorld().getBlockState(blockItemUseContext.getPos());
         if (blockState.getBlock() == this) {
-        	int num = 3;
-        			//Main.rand.nextInt(3)+1;
             return blockState.with(COLORSTATE, Math.min(3, blockState.get(COLORSTATE) + 1));
         } else {
             return super.getStateForPlacement(blockItemUseContext);
         }
     }
+    
+    public static IntegerProperty getColorState() {
+    	return COLORSTATE;
+    }
 	
 	@Override
 	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 		if (!worldIn.isRemote) {
-			placer.sendMessage(new TranslationTextComponent("You placed me?"));
+			placer.sendMessage(new TranslationTextComponent(AreaHandler.addMarker(pos, worldIn)));
+			//if (!AreaHandler.inLine(pos)) worldIn.setBlockState(pos, ModBlocks.SIM_MARKER.get().getDefaultState().with(SimMarker.getColorState(), 1));
 		}
 	}
 	

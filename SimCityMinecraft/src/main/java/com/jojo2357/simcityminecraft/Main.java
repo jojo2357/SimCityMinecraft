@@ -10,7 +10,9 @@ import com.jojo2357.simcityminecraft.init.ModContainers;
 import com.jojo2357.simcityminecraft.init.ModEntityTypes;
 import com.jojo2357.simcityminecraft.init.ModItems;
 import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
+import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
 import com.jojo2357.simcityminecraft.util.handler.SimKredsHandler;
+import com.jojo2357.simcityminecraft.util.handler.TickHandler;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
@@ -33,6 +35,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
@@ -51,15 +54,17 @@ public class Main {
 
 	public static Random rand = new Random(69);
 	public static final SimKredsHandler KredsManager = new SimKredsHandler();
+	public static final TickHandler tickHandler = new TickHandler();
 	public static final Logger LOGGER = LogManager.getLogger();
 	public static final String MOD_ID = "simcityminecraft";
 	public static Main instance;
 	// public static final WorldType EXAMPLE_WORLDTYPE = new ExampleWorldType();
-	public static final ResourceLocation EXAMPLE_DIM_TYPE = new ResourceLocation(MOD_ID, "example");
+	//public static final ResourceLocation EXAMPLE_DIM_TYPE = new ResourceLocation(MOD_ID, "example");
 
 	public Main() {
 		
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+		modEventBus.addListener(this::worldTick);
 		modEventBus.addListener(this::renderGameOverlay);
 		modEventBus.addListener(this::setup);
 
@@ -96,6 +101,14 @@ public class Main {
 
 		LOGGER.debug("Registered BlockItems!");
 	}
+	
+	@SubscribeEvent
+    public void worldTick(TickEvent.WorldTickEvent event) {
+		
+        if (event.phase == TickEvent.Phase.END){
+        	tickHandler.doTick();
+        }
+    }
 	
 	@SubscribeEvent
 	public void renderGameOverlay(RenderGameOverlayEvent.Post event) {

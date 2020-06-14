@@ -19,10 +19,10 @@ public class ModBlocks {
 			Main.MOD_ID);
 
 	public static final RegistryObject<Block> SIM_MARKER = BLOCKS.register("sim_marker", () -> new SimMarker(
-			SimMarker.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().lightValue(10)));
+			SimMarker.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().lightValue(10), 2));
 	
 	public static final RegistryObject<Block> SIM_WORK_BENCH = BLOCKS.register("sim_work_bench",() -> new SimWorkBenchBlock(
-			SimWorkBenchBlock.Properties.create(Material.IRON)));
+			SimWorkBenchBlock.Properties.create(Material.IRON).tickRandomly()));
 	
 	public static final RegistryObject<Block> SIM_LIGHT_WHITE = BLOCKS.register("sim_light_white", () -> new Block(
 			Block.Properties.create(Material.WOOD).lightValue(15)));
