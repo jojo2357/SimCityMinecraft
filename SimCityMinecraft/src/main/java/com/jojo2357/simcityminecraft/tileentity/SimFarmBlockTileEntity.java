@@ -2,9 +2,13 @@ package com.jojo2357.simcityminecraft.tileentity;
 
 import javax.annotation.Nonnull;
 
-import com.jojo2357.simcityminecraft.container.SimWorkBenchContainer;
+import com.jojo2357.simcityminecraft.container.SimFarmBlockContainer;
+import com.jojo2357.simcityminecraft.init.ModBlocks;
 import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
-import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
+import com.jojo2357.simcityminecraft.objects.blocks.SimFarmBlockBlock;
+import com.jojo2357.simcityminecraft.objects.blocks.SimMarker;
+import com.jojo2357.simcityminecraft.util.handler.Area;
+import com.jojo2357.simcityminecraft.util.handler.AreaHandler;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -34,22 +38,30 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class SimWorkBenchTileEntity extends LockableLootTileEntity implements ITickableTileEntity{
-	
-	private BlockPos chestSpot = null;
-	private boolean active = false;
-
+public class SimFarmBlockTileEntity extends LockableLootTileEntity implements ITickableTileEntity{
+ 
 	private NonNullList<ItemStack> chestContents = NonNullList.withSize(1, ItemStack.EMPTY);
 	protected int numPlayersUsing;
 	private IItemHandlerModifiable items = createHandler();
 	private LazyOptional<IItemHandlerModifiable> itemHandler = LazyOptional.of(() -> items);
+	
+	private int shouldState = 1;
+	private boolean doFarming = false;
+	private boolean xGoPositive;
+	private boolean zGoPositive;
+	
+	boolean chestHasDirt;
+	
+	public boolean foundArea = false;
+	public Area area;
+	public BlockPos chestSpot = null;
 
-	public SimWorkBenchTileEntity(TileEntityType<?> typeIn) {
+	public SimFarmBlockTileEntity(TileEntityType<?> typeIn) {
 		super(typeIn);
 	}
 
-	public SimWorkBenchTileEntity() {
-		this(ModTileEntityTypes.SIM_WORK_BENCH.get());
+	public SimFarmBlockTileEntity() {
+		this(ModTileEntityTypes.SIM_FARM_BLOCK.get());
 	}
 
 	@Override
@@ -69,12 +81,12 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 
 	@Override
 	protected ITextComponent getDefaultName() {
-		return new TranslationTextComponent("container.sim_work_bench");
+		return new TranslationTextComponent("container.sim_farm_block");
 	}
 
 	@Override
 	protected Container createMenu(int id, PlayerInventory player) {
-		return new SimWorkBenchContainer(id, player, this);
+		return new SimFarmBlockContainer(id, player, this);
 	}
 
 	@Override
@@ -85,7 +97,7 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 		}
 		return compound;
 	}
-
+	
 	@Override
 	public void read(CompoundNBT compound) {
 		super.read(compound);
@@ -119,7 +131,6 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 			if (this.numPlayersUsing < 0) {
 				this.numPlayersUsing = 0;
 			}
-
 			++this.numPlayersUsing;
 			this.onOpenOrClose();
 		}
@@ -132,10 +143,10 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 			this.onOpenOrClose();
 		}
 	}
-
+ 
 	protected void onOpenOrClose() {
 		Block block = this.getBlockState().getBlock();
-		if (block instanceof SimWorkBenchBlock) {
+		if (block instanceof SimFarmBlockBlock) {
 			this.world.addBlockEvent(this.pos, block, 1, this.numPlayersUsing);
 			this.world.notifyNeighborsOfStateChange(this.pos, block);
 		}
@@ -145,14 +156,14 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 		BlockState blockstate = reader.getBlockState(pos);
 		if (blockstate.hasTileEntity()) {
 			TileEntity tileentity = reader.getTileEntity(pos);
-			if (tileentity instanceof SimWorkBenchTileEntity) {
-				return ((SimWorkBenchTileEntity) tileentity).numPlayersUsing;
+			if (tileentity instanceof SimFarmBlockTileEntity) {
+				return ((SimFarmBlockTileEntity) tileentity).numPlayersUsing;
 			}
 		}
 		return 0;
 	}
 
-	public static void swapContents(SimWorkBenchTileEntity te, SimWorkBenchTileEntity otherTe) {
+	public static void swapContents(SimFarmBlockTileEntity te, SimFarmBlockTileEntity otherTe) {
 		NonNullList<ItemStack> list = te.getItems();
 		te.setItems(otherTe.getItems());
 		otherTe.setItems(list);
@@ -186,12 +197,19 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 			itemHandler.invalidate();
 		}
 	}
+	
+	public void clickHappened(int index) {
+		if (index == 1) doFarming = true;
+		if (index == 2) doFarming = false;
+	}
 
 	//@Override
 	public void tick() {
 		World worldIn = this.world.getWorld();
-		BlockPos pos = this.pos;
-		if (worldIn.isRemote) {
+		if (worldIn.getGameTime() % 20 == 1 && worldIn.isRemote) {
+			
+			BlockPos pos = this.pos;
+			//System.out.println(pos + " " + chestSpot);
 			if (chestSpot == null) {
 				if (worldIn.getTileEntity(pos.north()) instanceof ChestTileEntity) {
 					System.out.println("Chest Detected");
@@ -208,17 +226,61 @@ public class SimWorkBenchTileEntity extends LockableLootTileEntity implements IT
 				if (worldIn.getTileEntity(pos.west()) instanceof ChestTileEntity) {
 					System.out.println("Chest Detected");
 					chestSpot = pos.west();
+				}// && worldIn.getTileEntity(pos) instanceof SimFarmBlockTileEntity
+				if (chestSpot != null) {
+					shouldState++;
+					worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(SimFarmBlockBlock.getColorState(), shouldState));
 				}
 			}else {
 				if (!(worldIn.getTileEntity(chestSpot) instanceof ChestTileEntity)) {
-					System.out.println("Chest Lost from " + chestSpot + " " + this.chestSpot);
+					//System.out.println("Chest Lost from " + chestSpot + " " + this.chestSpot);
 					chestSpot = null;
+					shouldState--;
+					worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(SimFarmBlockBlock.getColorState(), shouldState));
+				}
+			}
+			if (worldIn.getBlockState(pos) == ModBlocks.SIM_FARM_BLOCK.get().getDefaultState().with(SimFarmBlockBlock.getFacing(), 
+					worldIn.getBlockState(pos).get(SimFarmBlockBlock.getFacing()))) {
+				worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(SimFarmBlockBlock.getColorState(), shouldState));
+			}
+			System.out.println(pos + " " + chestSpot);
+			for (Area checking : AreaHandler.definedAreas) {
+				if (checking.taken()) continue;
+				if (isNextTo(pos, checking.getPlacedCorner())) {
+					shouldState++;
+					foundArea = true;
+					System.out.println("ooga booga");
+					worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(SimFarmBlockBlock.getColorState(), shouldState));
+					this.area = checking;
+					checking.markTaken();
+				}
+			}
+			if (shouldState == 3 && doFarming) {
+				if (worldIn.getTileEntity(chestSpot) instanceof ChestTileEntity) {
+					ChestTileEntity ourChest = ((ChestTileEntity) worldIn.getTileEntity(chestSpot));
+					//if (ourChest.getItems().contains(ModBlocks.SIM_WORK_BENCH))
+					
+				}
+				if (area.getPlacedCorner().getX() > area.getGuessedCorner().getX()) xGoPositive = false;
+				else xGoPositive = true;
+				if (area.getPlacedCorner().getZ() > area.getGuessedCorner().getZ()) zGoPositive = false;
+				else zGoPositive = true;
+				int distX = Math.abs(area.getPlacedCorner().getX() - area.getGuessedCorner().getX()) - 1;
+				int distZ = Math.abs(area.getPlacedCorner().getZ() - area.getGuessedCorner().getZ()) - 1;
+				for (int farmingIndeX = 0; farmingIndeX < distX; farmingIndeX++) {
+					int realX = xGoPositive ? farmingIndeX: - farmingIndeX;
+					for (int farmingIndeZ = 0; farmingIndeZ < distZ; farmingIndeZ++) {
+						int realZ = zGoPositive ? farmingIndeZ: - farmingIndeZ;
+						if (!worldIn.isBlockPresent((
+								new BlockPos(area.getPlacedCorner().getX() + realX, area.getPlacedCorner().getY(), area.getPlacedCorner().getZ() + realZ))))
+							;
+					}
 				}
 			}
 		}
 	}
 	
-	public void clickHappened(int index) {
-		System.out.println("Clicked index: " + index);
+	private static boolean isNextTo(BlockPos a, BlockPos b) {
+		return a.north().equals(b) || a.east().equals(b) || a.south().equals(b) || a.west().equals(b);
 	}
 }

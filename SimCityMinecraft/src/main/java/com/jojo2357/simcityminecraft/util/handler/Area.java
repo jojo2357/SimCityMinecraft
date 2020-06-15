@@ -10,9 +10,18 @@ public class Area {
 	private BlockPos b;
 	private BlockPos c;
 	private BlockPos guessedCorner;
+	private boolean inUse = false;
 	
 	private int y;
 	private int cornerIndex;
+	
+	public boolean taken() {
+		return inUse;
+	}
+	
+	public void markTaken() {
+		inUse = true;
+	}
 	
 	public Area(ArrayList<BlockPos> places) {
 		findCorner(places);

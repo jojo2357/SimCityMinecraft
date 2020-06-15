@@ -2,11 +2,9 @@ package com.jojo2357.simcityminecraft.container;
 
 import java.util.Objects;
 
-import javax.annotation.Nullable;
-
 import com.jojo2357.simcityminecraft.init.ModBlocks;
 import com.jojo2357.simcityminecraft.init.ModContainers;
-import com.jojo2357.simcityminecraft.tileentity.SimWorkBenchTileEntity;
+import com.jojo2357.simcityminecraft.tileentity.SimFarmBlockTileEntity;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,13 +15,13 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 
-public class SimWorkBenchContainer extends Container{
+public class SimFarmBlockContainer extends Container{
 	
-	public final SimWorkBenchTileEntity tileEntity;
+	public final SimFarmBlockTileEntity tileEntity;
 	private final IWorldPosCallable canInteractWithCallable;
 
-	public SimWorkBenchContainer(final int windowId, final PlayerInventory playerInventory, final SimWorkBenchTileEntity tileEntity) {
-		super(ModContainers.SIM_WORK_BENCH.get(), windowId);
+	public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final SimFarmBlockTileEntity tileEntity) {
+		super(ModContainers.SIM_FARM_BLOCK.get(), windowId);
 		this.tileEntity = tileEntity;
 		this.canInteractWithCallable = IWorldPosCallable.of(tileEntity.getWorld(), tileEntity.getPos());
 
@@ -54,25 +52,25 @@ public class SimWorkBenchContainer extends Container{
 		}*/
 	}
 
-	private static SimWorkBenchTileEntity getTileEntity(final PlayerInventory playerInventory,
+	private static SimFarmBlockTileEntity getTileEntity(final PlayerInventory playerInventory,
 			final PacketBuffer data) {
 		Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
 		Objects.requireNonNull(data, "data cannot be null");
 		final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
-		if (tileAtPos instanceof SimWorkBenchTileEntity) {
-			return (SimWorkBenchTileEntity) tileAtPos;
+		if (tileAtPos instanceof SimFarmBlockTileEntity) {
+			return (SimFarmBlockTileEntity) tileAtPos;
 		}
 		throw new IllegalStateException("Tile entity is not correct! " + tileAtPos);
 	}
 
-	public SimWorkBenchContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
+	public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
 		this(windowId, playerInventory, getTileEntity(playerInventory, data));
 	}
 
 	@Override
 	public boolean canInteractWith(PlayerEntity playerIn) {
-		return isWithinUsableDistance(canInteractWithCallable, playerIn, ModBlocks.SIM_WORK_BENCH.get());
+		return isWithinUsableDistance(canInteractWithCallable, playerIn, ModBlocks.SIM_FARM_BLOCK.get());
 	}
 
-
 }
+

@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "facing=north,colorstate=1": { "model": "simcityminecraft:block/sim_farm_block_red" },
+        "facing=south,colorstate=1": { "model": "simcityminecraft:block/sim_farm_block_red", "y": 180 },
+        "facing=west,colorstate=1":  { "model": "simcityminecraft:block/sim_farm_block_red", "y": 270 },
+        "facing=east,colorstate=1":  { "model": "simcityminecraft:block/sim_farm_block_red", "y": 90 },
+        "facing=north,colorstate=2": { "model": "simcityminecraft:block/sim_farm_block_yellow" },
+        "facing=south,colorstate=2": { "model": "simcityminecraft:block/sim_farm_block_yellow", "y": 180 },
+        "facing=west,colorstate=2":  { "model": "simcityminecraft:block/sim_farm_block_yellow", "y": 270 },
+        "facing=east,colorstate=2":  { "model": "simcityminecraft:block/sim_farm_block_yellow", "y": 90 },
+        "facing=north,colorstate=3": { "model": "simcityminecraft:block/sim_farm_block_green" },
+        "facing=south,colorstate=3": { "model": "simcityminecraft:block/sim_farm_block_green", "y": 180 },
+        "facing=west,colorstate=3":  { "model": "simcityminecraft:block/sim_farm_block_green", "y": 270 },
+        "facing=east,colorstate=3":  { "model": "simcityminecraft:block/sim_farm_block_green", "y": 90 }
+    }
+}

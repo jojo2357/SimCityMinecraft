@@ -4,12 +4,12 @@ import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
 
 import net.minecraft.client.gui.widget.Widget;
 
-public class ButtonWidget extends Widget{
+public class FarmButtonWidget extends Widget{
 	
 	private int myIndex;
-	private SimWorkBenchScreen owner;
+	private SimFarmBlockScreen owner;
 	
-	public ButtonWidget(int xIn, int yIn, int widthIn, int heightIn, String msg, int myIndex, SimWorkBenchScreen owner) {
+	public FarmButtonWidget(int xIn, int yIn, int widthIn, int heightIn, String msg, int myIndex, SimFarmBlockScreen owner) {
 		super(xIn, yIn, widthIn, heightIn, msg);
 		this.myIndex = myIndex;
 		this.owner = owner;

@@ -32,8 +32,8 @@ public class SimMarker extends TorchBlock{
 		this.setDefaultState(this.stateContainer.getBaseState().with(COLORSTATE, blockState));
 	}
 	
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> p_206840_1_) {
-        p_206840_1_.add(new IProperty[]{COLORSTATE});
+    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+        builder.add(COLORSTATE);
     }
 	
     @Nullable
@@ -58,5 +58,7 @@ public class SimMarker extends TorchBlock{
 			//if (!AreaHandler.inLine(pos)) worldIn.setBlockState(pos, ModBlocks.SIM_MARKER.get().getDefaultState().with(SimMarker.getColorState(), 1));
 		}
 	}
+	
+	
 	
 }

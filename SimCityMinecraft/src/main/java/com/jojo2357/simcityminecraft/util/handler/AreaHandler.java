@@ -9,7 +9,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class AreaHandler {
+public class AreaHandler{
 	
 	public static ArrayList<Area> definedAreas = new ArrayList<Area>();
 	public static int liveMarkers = 0;

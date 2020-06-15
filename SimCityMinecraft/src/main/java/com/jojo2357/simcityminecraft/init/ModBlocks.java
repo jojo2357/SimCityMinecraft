@@ -1,6 +1,7 @@
 package com.jojo2357.simcityminecraft.init;
 
 import com.jojo2357.simcityminecraft.Main;
+import com.jojo2357.simcityminecraft.objects.blocks.SimFarmBlockBlock;
 import com.jojo2357.simcityminecraft.objects.blocks.SimMarker;
 import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
 
@@ -22,7 +23,10 @@ public class ModBlocks {
 			SimMarker.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().lightValue(10), 2));
 	
 	public static final RegistryObject<Block> SIM_WORK_BENCH = BLOCKS.register("sim_work_bench",() -> new SimWorkBenchBlock(
-			SimWorkBenchBlock.Properties.create(Material.IRON).tickRandomly()));
+			SimWorkBenchBlock.Properties.create(Material.IRON)));
+	
+	public static final RegistryObject<Block> SIM_FARM_BLOCK = BLOCKS.register("sim_farm_block",() -> new SimFarmBlockBlock(
+			SimFarmBlockBlock.Properties.create(Material.IRON)));
 	
 	public static final RegistryObject<Block> SIM_LIGHT_WHITE = BLOCKS.register("sim_light_white", () -> new Block(
 			Block.Properties.create(Material.WOOD).lightValue(15)));

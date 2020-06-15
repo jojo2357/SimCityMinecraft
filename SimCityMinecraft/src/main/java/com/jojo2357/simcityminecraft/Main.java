@@ -10,9 +10,8 @@ import com.jojo2357.simcityminecraft.init.ModContainers;
 import com.jojo2357.simcityminecraft.init.ModEntityTypes;
 import com.jojo2357.simcityminecraft.init.ModItems;
 import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
-import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
 import com.jojo2357.simcityminecraft.util.handler.SimKredsHandler;
-import com.jojo2357.simcityminecraft.util.handler.TickHandler;
+//import com.jojo2357.simcityminecraft.util.handler.TickHandler;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
@@ -54,7 +53,7 @@ public class Main {
 
 	public static Random rand = new Random(69);
 	public static final SimKredsHandler KredsManager = new SimKredsHandler();
-	public static final TickHandler tickHandler = new TickHandler();
+	//public static final TickHandler tickHandler = new TickHandler();
 	public static final Logger LOGGER = LogManager.getLogger();
 	public static final String MOD_ID = "simcityminecraft";
 	public static Main instance;
@@ -64,6 +63,7 @@ public class Main {
 	public Main() {
 		
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+		
 		modEventBus.addListener(this::worldTick);
 		modEventBus.addListener(this::renderGameOverlay);
 		modEventBus.addListener(this::setup);
@@ -106,7 +106,7 @@ public class Main {
     public void worldTick(TickEvent.WorldTickEvent event) {
 		
         if (event.phase == TickEvent.Phase.END){
-        	tickHandler.doTick();
+        	//tickHandler.doTick();
         }
     }
 	
