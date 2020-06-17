@@ -1,6 +1,9 @@
 package com.jojo2357.simcityminecraft.tileentity;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.jojo2357.simcityminecraft.container.SimFarmBlockContainer;
 import com.jojo2357.simcityminecraft.init.ModBlocks;
@@ -12,11 +15,19 @@ import com.jojo2357.simcityminecraft.util.handler.AreaHandler;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventoryProvider;
 import net.minecraft.inventory.ItemStackHelper;
+import net.minecraft.inventory.container.ChestContainer;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -24,9 +35,11 @@ import net.minecraft.tileentity.LockableLootTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -38,7 +51,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class SimFarmBlockTileEntity extends LockableLootTileEntity implements ITickableTileEntity{
+public class SimFarmBlockTileEntity extends LockableLootTileEntity implements ITickableTileEntity, IInventory{
  
 	private NonNullList<ItemStack> chestContents = NonNullList.withSize(1, ItemStack.EMPTY);
 	protected int numPlayersUsing;
@@ -181,7 +194,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IT
 	@Override
 	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nonnull Direction side) {
 		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-			return itemHandler.cast();
+			//return itemHandler.cast();
 		}
 		return super.getCapability(cap, side);
 	}
@@ -211,21 +224,10 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IT
 			BlockPos pos = this.pos;
 			//System.out.println(pos + " " + chestSpot);
 			if (chestSpot == null) {
-				if (worldIn.getTileEntity(pos.north()) instanceof ChestTileEntity) {
-					System.out.println("Chest Detected");
-					chestSpot = pos.north();
-				}
-				if (worldIn.getTileEntity(pos.south()) instanceof ChestTileEntity) {
-					System.out.println("Chest Detected");
-					chestSpot = pos.south();
-				}
-				if (worldIn.getTileEntity(pos.east()) instanceof ChestTileEntity) {
-					System.out.println("Chest Detected");
-					chestSpot = pos.east();
-				}
-				if (worldIn.getTileEntity(pos.west()) instanceof ChestTileEntity) {
-					System.out.println("Chest Detected");
-					chestSpot = pos.west();
+				for(Direction facing : ChestBlock.FACING.getAllowedValues()) {
+				    if(worldIn.getTileEntity(pos.offset(facing)) instanceof ChestTileEntity) {
+				        chestSpot = pos.offset(facing);
+				    }
 				}// && worldIn.getTileEntity(pos) instanceof SimFarmBlockTileEntity
 				if (chestSpot != null) {
 					shouldState++;
@@ -243,7 +245,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IT
 					worldIn.getBlockState(pos).get(SimFarmBlockBlock.getFacing()))) {
 				worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(SimFarmBlockBlock.getColorState(), shouldState));
 			}
-			System.out.println(pos + " " + chestSpot);
+			//System.out.println(pos + " " + chestSpot);
 			for (Area checking : AreaHandler.definedAreas) {
 				if (checking.taken()) continue;
 				if (isNextTo(pos, checking.getPlacedCorner())) {
@@ -256,10 +258,25 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IT
 				}
 			}
 			if (shouldState == 3 && doFarming) {
+				BlockPos lookingPos;
+				IInventory chestInventory = null;
+				int dirtIndex = -1;
+				chestHasDirt = false;
+				
 				if (worldIn.getTileEntity(chestSpot) instanceof ChestTileEntity) {
-					ChestTileEntity ourChest = ((ChestTileEntity) worldIn.getTileEntity(chestSpot));
-					//if (ourChest.getItems().contains(ModBlocks.SIM_WORK_BENCH))
+					//System.out.println("Chest drawing from is @: " + chestSpot + " and I am @: " + pos);
+					chestInventory = getInventoryAtPosition(worldIn, chestSpot);
+					System.out.println(chestInventory + " " + chestInventory == null);
+					//public ChestContainer(ContainerType<?> type, int id, PlayerInventory playerInventoryIn, IInventory p_i50092_4_, int rows)
 					
+					//chestInventory.clear();
+					for (int i = 0; i < 27; i++) {
+						if (((ChestTileEntity)chestInventory).getStackInSlot(i).getItem().equals(Items.DIRT)) {
+							chestHasDirt = true;
+							dirtIndex = i;
+							System.out.println("Found dirt");
+						}//else System.out.println(((LockableLootTileEntity)chestInventory).getStackInSlot(i).getItem() + " in slot " + i + " is not: " + Items.DIRT);
+					}
 				}
 				if (area.getPlacedCorner().getX() > area.getGuessedCorner().getX()) xGoPositive = false;
 				else xGoPositive = true;
@@ -268,16 +285,67 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IT
 				int distX = Math.abs(area.getPlacedCorner().getX() - area.getGuessedCorner().getX()) - 1;
 				int distZ = Math.abs(area.getPlacedCorner().getZ() - area.getGuessedCorner().getZ()) - 1;
 				for (int farmingIndeX = 0; farmingIndeX < distX; farmingIndeX++) {
-					int realX = xGoPositive ? farmingIndeX: - farmingIndeX;
+					int realX = xGoPositive ? farmingIndeX + 1: - farmingIndeX;
+					realX += area.getPlacedCorner().getX();
 					for (int farmingIndeZ = 0; farmingIndeZ < distZ; farmingIndeZ++) {
-						int realZ = zGoPositive ? farmingIndeZ: - farmingIndeZ;
-						if (!worldIn.isBlockPresent((
-								new BlockPos(area.getPlacedCorner().getX() + realX, area.getPlacedCorner().getY(), area.getPlacedCorner().getZ() + realZ))))
-							;
+						int realZ = zGoPositive ? farmingIndeZ + 1: - farmingIndeZ;
+						realZ += area.getPlacedCorner().getZ();
+						lookingPos = new BlockPos(realX, area.getPlacedCorner().getY() - 1, realZ);
+						//if (chestHasDirt) {
+							if (!(worldIn.getBlockState(lookingPos).getBlock() == Blocks.DIRT || worldIn.getBlockState(lookingPos).getBlock() == Blocks.GRASS_BLOCK) 
+									&& !worldIn.hasWater(lookingPos)
+									) {
+								System.out.println("PLACE SOME DIRT " + lookingPos);
+								//decraseInventory(dirtIndex, chestInventory);
+								return;
+							}
+						//}
 					}
 				}
 			}
 		}
+	}
+	
+	public static void decraseInventory(int index, IInventory inventory) {
+		int alreadyThere = inventory.getStackInSlot(index).getStack().getCount();
+		System.out.println("Blocks detected: " + alreadyThere);
+		if (alreadyThere == 1) {
+			inventory.setInventorySlotContents(index, ItemStack.EMPTY);
+		}else {
+			inventory.setInventorySlotContents(index, new ItemStack(inventory.getStackInSlot(index).getStack().getItem(), alreadyThere - 1));
+		}
+	}
+	
+	public static IInventory getInventoryAtPosition(World worldIn, BlockPos pos) {
+		return getInventoryAtPosition(worldIn, pos.getX(), pos.getY(), pos.getZ());
+	}
+	
+	@Nullable
+    public static IInventory getInventoryAtPosition(World worldIn, double x, double y, double z) {
+	      IInventory iinventory = null;
+	      BlockPos blockpos = new BlockPos(x, y, z);
+	      BlockState blockstate = worldIn.getBlockState(blockpos);
+	      Block block = blockstate.getBlock();
+	      if (block instanceof ISidedInventoryProvider) {
+	    	  iinventory = ((ISidedInventoryProvider)block).createInventory(blockstate, worldIn, blockpos);
+	      } else if (blockstate.hasTileEntity()) {
+	          TileEntity tileentity = worldIn.getTileEntity(blockpos);
+	          if (tileentity instanceof IInventory) {
+	            iinventory = (IInventory)tileentity;
+	            if (iinventory instanceof ChestTileEntity && block instanceof ChestBlock) {
+	               iinventory = ChestBlock.func_226916_a_((ChestBlock)block, blockstate, worldIn, blockpos, true);
+	            }
+	         }
+	      }
+
+	      if (iinventory == null) {
+	         List<Entity> list = worldIn.getEntitiesInAABBexcluding((Entity)null, new AxisAlignedBB(x - 0.5D, y - 0.5D, z - 0.5D, x + 0.5D, y + 0.5D, z + 0.5D), EntityPredicates.HAS_INVENTORY);
+	         if (!list.isEmpty()) {
+	            iinventory = (IInventory)list.get(worldIn.rand.nextInt(list.size()));
+	         }
+	      }
+
+	      return iinventory;
 	}
 	
 	private static boolean isNextTo(BlockPos a, BlockPos b) {
