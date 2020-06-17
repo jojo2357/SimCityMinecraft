@@ -8,69 +8,116 @@ import com.jojo2357.simcityminecraft.tileentity.SimFarmBlockTileEntity;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.inventory.container.HopperContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 
+
 public class SimFarmBlockContainer extends Container{
-	
-	public final SimFarmBlockTileEntity tileEntity;
-	private final IWorldPosCallable canInteractWithCallable;
+		public final SimFarmBlockTileEntity tileEntity;
+	   private final IInventory hopperInventory;
+	   private int index = 0;
+	   //private final IWorldPosCallable canInteractWithCallable;
 
-	public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final SimFarmBlockTileEntity tileEntity) {
-		super(ModContainers.SIM_FARM_BLOCK.get(), windowId);
-		this.tileEntity = tileEntity;
-		this.canInteractWithCallable = IWorldPosCallable.of(tileEntity.getWorld(), tileEntity.getPos());
+	   //public SimFarmBlockContainer(int p_i50078_1_, PlayerInventory p_i50078_2_) {
+	      //this(p_i50078_1_, p_i50078_2_, new Inventory(5));
+	   //}
+	   
+		public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
+			this(windowId, playerInventory, getTileEntity(playerInventory, data));
+		}
+		
+	   public SimFarmBlockContainer(int p_i50079_1_, PlayerInventory p_i50079_2_, SimFarmBlockTileEntity p_i50079_3_) {
+		   
+		      super(ModContainers.SIM_FARM_BLOCK.get(), p_i50079_1_);
+		      this.tileEntity = p_i50079_3_;
+		      this.hopperInventory = p_i50079_3_;
+		      assertInventorySize(p_i50079_3_, 5);
+		      p_i50079_3_.openInventory(p_i50079_2_.player);
+		      int i = 51;
 
-		// Main Inventory
-		/*int startX = 8;
-		int startY = 18;
-		int slotSizePlus2 = 18;
-		for (int row = 0; row < 4; ++row) {
-			for (int column = 0; column < 9; ++column) {
-				this.addSlot(new Slot(tileEntity, (row * 9) + column, startX + (column * slotSizePlus2),
-						startY + (row * slotSizePlus2)));
+		      for(int j = 0; j < 5; ++j) {
+		         this.addSlot(new Slot(p_i50079_3_, j, 44 + j * 18, 20));
+		      }
+
+		      for(int l = 0; l < 3; ++l) {
+		         for(int k = 0; k < 9; ++k) {
+		            this.addSlot(new Slot(p_i50079_2_, k + l * 9 + 9, 8 + k * 18, l * 18 + 51));
+		         }
+		      }
+
+		      for(int i1 = 0; i1 < 9; ++i1) {
+		         this.addSlot(new Slot(p_i50079_2_, i1, 8 + i1 * 18, 109));
+		      }
+
+		   }
+		
+		private static SimFarmBlockTileEntity getTileEntity(final PlayerInventory playerInventory,
+				final PacketBuffer data) {
+			Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
+			Objects.requireNonNull(data, "data cannot be null");
+			final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
+			if (tileAtPos instanceof SimFarmBlockTileEntity) {
+				return (SimFarmBlockTileEntity) tileAtPos;
 			}
+			throw new IllegalStateException("Tile entity is not correct! " + tileAtPos);
 		}
 
-		// Main Player Inventory
-		int startPlayerInvY = startY * 5 + 12;
-		for (int row = 0; row < 3; ++row) {
-			for (int column = 0; column < 9; ++column) {
-				this.addSlot(new Slot(playerInventory, 9 + (row * 9) + column, startX + (column * slotSizePlus2),
-						startPlayerInvY + (row * slotSizePlus2)));
-			}
-		}
 
-		// Hotbar
-		int hotbarY = startPlayerInvY + (startPlayerInvY / 2) + 7;
-		for (int column = 0; column < 9; ++column) {
-			this.addSlot(new Slot(playerInventory, column, startX + (column * slotSizePlus2), hotbarY));
-		}*/
+
+	   /**
+	    * Determines whether supplied player can use this container
+	    */
+	   public boolean canInteractWith(PlayerEntity playerIn) {
+		      return this.hopperInventory.isUsableByPlayer(playerIn);
+	   }
+
+	   /**
+	    * Handle when the stack in slot {@code index} is shift-clicked. Normally this moves the stack between the player
+	    * inventory and the other inventory(s).
+	    */
+	   public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+	      ItemStack itemstack = ItemStack.EMPTY;
+	      Slot slot = this.inventorySlots.get(index);
+	      if (slot != null && slot.getHasStack()) {
+	         ItemStack itemstack1 = slot.getStack();
+	         itemstack = itemstack1.copy();
+	         if (index < this.hopperInventory.getSizeInventory()) {
+	            if (!this.mergeItemStack(itemstack1, this.hopperInventory.getSizeInventory(), this.inventorySlots.size(), true)) {
+	               return ItemStack.EMPTY;
+	            }
+	         } else if (!this.mergeItemStack(itemstack1, 0, this.hopperInventory.getSizeInventory(), false)) {
+	            return ItemStack.EMPTY;
+	         }
+
+	         if (itemstack1.isEmpty()) {
+	            slot.putStack(ItemStack.EMPTY);
+	         } else {
+	            slot.onSlotChanged();
+	         }
+	      }
+
+	      return itemstack;
+	   }
+
+	   /**
+	    * Called when the container is closed.
+	    */
+	   public void onContainerClosed(PlayerEntity playerIn) {
+	      super.onContainerClosed(playerIn);
+	      this.hopperInventory.closeInventory(playerIn);
+	   }
+	   
+	   public void clickHappened(int index) {
+		   this.index = index;
+	   }
+
 	}
-
-	private static SimFarmBlockTileEntity getTileEntity(final PlayerInventory playerInventory,
-			final PacketBuffer data) {
-		Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
-		Objects.requireNonNull(data, "data cannot be null");
-		final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
-		if (tileAtPos instanceof SimFarmBlockTileEntity) {
-			return (SimFarmBlockTileEntity) tileAtPos;
-		}
-		throw new IllegalStateException("Tile entity is not correct! " + tileAtPos);
-	}
-
-	public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
-		this(windowId, playerInventory, getTileEntity(playerInventory, data));
-	}
-
-	@Override
-	public boolean canInteractWith(PlayerEntity playerIn) {
-		return isWithinUsableDistance(canInteractWithCallable, playerIn, ModBlocks.SIM_FARM_BLOCK.get());
-	}
-
-}
-

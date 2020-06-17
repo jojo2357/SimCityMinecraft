@@ -1,6 +1,9 @@
 package com.jojo2357.simcityminecraft;
 
 import java.util.Random;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,6 +13,8 @@ import com.jojo2357.simcityminecraft.init.ModContainers;
 import com.jojo2357.simcityminecraft.init.ModEntityTypes;
 import com.jojo2357.simcityminecraft.init.ModItems;
 import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
+import com.jojo2357.simcityminecraft.util.handler.ModPacketHandler;
+import com.jojo2357.simcityminecraft.util.handler.MyMessage;
 import com.jojo2357.simcityminecraft.util.handler.SimKredsHandler;
 //import com.jojo2357.simcityminecraft.util.handler.TickHandler;
 
@@ -22,6 +27,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceContext.BlockMode;
@@ -44,6 +50,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
 @SuppressWarnings("deprecation")
@@ -73,6 +80,10 @@ public class Main {
 		ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 		ModTileEntityTypes.TILE_ENTITY_TYPES.register(modEventBus);
 		ModContainers.CONTAINER_TYPES.register(modEventBus);
+		ModPacketHandler.INSTANCE.registerMessage(666, null, null, null, null);
+		
+		//Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder, Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
+		
 		/*ParticleInit.PARTICLE_TYPES.register(modEventBus);
 		SoundInit.SOUNDS.register(modEventBus);
 		PotionInit.POTIONS.register(modEventBus);

@@ -5,6 +5,7 @@ import com.jojo2357.simcityminecraft.container.SimFarmBlockContainer;
 import com.jojo2357.simcityminecraft.container.SimWorkBenchContainer;
 
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.inventory.container.HopperContainer;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;

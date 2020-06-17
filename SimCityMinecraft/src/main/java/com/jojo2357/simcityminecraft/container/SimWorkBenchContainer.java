@@ -22,6 +22,10 @@ public class SimWorkBenchContainer extends Container{
 	public final SimWorkBenchTileEntity tileEntity;
 	private final IWorldPosCallable canInteractWithCallable;
 
+	public SimWorkBenchContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
+		this(windowId, playerInventory, getTileEntity(playerInventory, data));
+	}
+	
 	public SimWorkBenchContainer(final int windowId, final PlayerInventory playerInventory, final SimWorkBenchTileEntity tileEntity) {
 		super(ModContainers.SIM_WORK_BENCH.get(), windowId);
 		this.tileEntity = tileEntity;
@@ -63,10 +67,6 @@ public class SimWorkBenchContainer extends Container{
 			return (SimWorkBenchTileEntity) tileAtPos;
 		}
 		throw new IllegalStateException("Tile entity is not correct! " + tileAtPos);
-	}
-
-	public SimWorkBenchContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
-		this(windowId, playerInventory, getTileEntity(playerInventory, data));
 	}
 
 	@Override

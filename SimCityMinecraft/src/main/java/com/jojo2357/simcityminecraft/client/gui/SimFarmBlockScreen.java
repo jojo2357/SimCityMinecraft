@@ -11,13 +11,14 @@ import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class SimFarmBlockScreen extends ContainerScreen<SimFarmBlockContainer> {
+public class SimFarmBlockScreen extends ContainerScreen<SimFarmBlockContainer> implements ITickableTileEntity{
 
 	private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/sim_work_bench.png");
 	
@@ -55,6 +56,6 @@ public class SimFarmBlockScreen extends ContainerScreen<SimFarmBlockContainer> {
 	}
 	
 	public void buttonClicked(int indexClicked) {
-		this.getContainer().tileEntity.clickHappened(indexClicked);
+		
 	}
 }
