@@ -99,7 +99,7 @@ public class SimFarmBlockBlock extends ContainerBlock {
    public BlockRenderType getRenderType(BlockState state) {
       return BlockRenderType.MODEL;
    }
-
+ 
    /**
     * @deprecated call via {@link IBlockState#hasComparatorInputOverride()} whenever possible. Implementing/overriding
     * is fine.

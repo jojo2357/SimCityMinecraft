@@ -48,12 +48,14 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IHopper, ITickableTileEntity {
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(5, ItemStack.EMPTY);
 	private int transferCooldown = -1;
 	private long tickedGameTime;
-	private boolean doFarming;
+	private boolean doFarming = true;
 	private Direction chestDirection;
 	private BlockPos chestPos = null;
 	private int shouldState = 1;
@@ -117,6 +119,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 		return new TranslationTextComponent("container.sim_farm_block");
 	}
 
+	@SuppressWarnings("deprecation")
 	public void tick() {
 		World worldIn = this.world.getWorld();
 		if (this.world != null && !this.world.isRemote) {
@@ -186,7 +189,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 				int distX = Math.abs(area.getPlacedCorner().getX() - area.getGuessedCorner().getX()) - 1;
 				int distZ = Math.abs(area.getPlacedCorner().getZ() - area.getGuessedCorner().getZ()) - 1;
 				for (int farmingIndeX = 0; farmingIndeX < distX; farmingIndeX++) {
-					int realX = xGoPositive ? farmingIndeX + 1 : -farmingIndeX;
+					int realX = xGoPositive ? farmingIndeX: -farmingIndeX;
 					realX += area.getPlacedCorner().getX();
 					for (int farmingIndeZ = 0; farmingIndeZ < distZ; farmingIndeZ++) {
 						int realZ = zGoPositive ? farmingIndeZ + 1 : -farmingIndeZ;
@@ -202,12 +205,16 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 								this.updateHopper(() -> {
 									return pullItems(this, this.chestDirection, Blocks.DIRT.asItem());
 								});
+								if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.AIR) {
+									Block block = worldIn.getBlockState(lookingPos).getBlock();
+									ItemStack item = block.getItem(worldIn, lookingPos, block.getDefaultState());
+									putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), item, chestDirection);
+									//this.transferItemsOut();
+									
+								}
+								worldIn.setBlockState(lookingPos, Blocks.DIRT.getDefaultState());
 							}
-							if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.AIR) {
-
-								this.inventory.add(new ItemStack(Blocks.GRASS_BLOCK, realZ));
-								this.transferItemsOut();
-							}
+							
 							return;
 						}
 						// }
@@ -632,16 +639,18 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 			this.doFarming = false;
 	}
 	
-	public void clickHappened(MyMessage msg) {
+	/*public void clickHappened(MyMessage msg) {
 		int indexClicked = msg.getIndex();
 		//if (this.getWorld().isRemote()) return;
 		if (indexClicked == 1)
 			this.doFarming = true;
 		if (indexClicked == 2)
 			this.doFarming = false;
-	}
-
+	}*/
 	public void buttonClicked(int myIndex) {
-		
+		if (myIndex == 1)
+			this.doFarming = true;
+		if (myIndex == 2)
+			this.doFarming = false;
 	}
 }

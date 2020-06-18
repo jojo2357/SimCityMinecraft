@@ -51,6 +51,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.registries.IForgeRegistry;
 
 @SuppressWarnings("deprecation")
@@ -64,6 +66,14 @@ public class Main {
 	public static final Logger LOGGER = LogManager.getLogger();
 	public static final String MOD_ID = "simcityminecraft";
 	public static Main instance;
+	
+    public static final String NETWORK_PROTOCOL = "2";
+	public static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(MOD_ID, "net"))
+            .networkProtocolVersion(() -> NETWORK_PROTOCOL)
+            .clientAcceptedVersions(NETWORK_PROTOCOL::equals)
+            .serverAcceptedVersions(NETWORK_PROTOCOL::equals)
+            .simpleChannel();
+	
 	// public static final WorldType EXAMPLE_WORLDTYPE = new ExampleWorldType();
 	//public static final ResourceLocation EXAMPLE_DIM_TYPE = new ResourceLocation(MOD_ID, "example");
 
@@ -80,7 +90,8 @@ public class Main {
 		ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 		ModTileEntityTypes.TILE_ENTITY_TYPES.register(modEventBus);
 		ModContainers.CONTAINER_TYPES.register(modEventBus);
-		ModPacketHandler.INSTANCE.registerMessage(666, null, null, null, null);
+		
+		setupMessages();
 		
 		//Class<MSG> messageType, BiConsumer<MSG, PacketBuffer> encoder, Function<PacketBuffer, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer) {
 		
@@ -96,6 +107,13 @@ public class Main {
 		instance = this;
 		MinecraftForge.EVENT_BUS.register(this);
 	}
+	
+	public void setupMessages(){
+		INSTANCE.messageBuilder(MyMessage.class, 0)
+	        .encoder(MyMessage::serialize).decoder(MyMessage::deserialize)
+	        .consumer(MyMessage::handle)
+	        .add();
+	}  
 
 	@SubscribeEvent
 	public static void onRegisterItems(final RegistryEvent.Register<Item> event) {

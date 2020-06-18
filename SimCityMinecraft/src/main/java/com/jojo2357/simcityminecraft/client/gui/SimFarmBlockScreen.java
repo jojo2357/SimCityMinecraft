@@ -54,8 +54,5 @@ public class SimFarmBlockScreen extends ContainerScreen<SimFarmBlockContainer> i
 		this.addButton(new FarmButtonWidget(10, 10, 50, 20, "test", 1, this));
 		this.addButton(new FarmButtonWidget(10, 100, 50, 20, "test", 2, this));
 	}
-	
-	public void buttonClicked(int indexClicked) {
-		
-	}
+
 }
