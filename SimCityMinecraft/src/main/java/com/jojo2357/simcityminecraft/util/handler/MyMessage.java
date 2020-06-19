@@ -29,17 +29,13 @@ public class MyMessage{
 	
 	public void serialize(PacketBuffer buffer) {
 		buffer.writeInt(this.index);
-		buffer.writeInt(this.pos.getX());
-		buffer.writeInt(this.pos.getY());
-		buffer.writeInt(this.pos.getZ());
+		buffer.writeBlockPos(this.pos);
 	}
 	
     public static MyMessage deserialize(PacketBuffer buffer) {
         int index = buffer.readInt();
-        int getx = buffer.readInt();
-        int gety = buffer.readInt();
-        int getz = buffer.readInt();
-        return new MyMessage(index, new BlockPos(getx, gety, getz));
+        BlockPos pos = buffer.readBlockPos();
+        return new MyMessage(index, pos);
     }
     
     public static boolean handle(MyMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -50,7 +46,9 @@ public class MyMessage{
         //if (client.world.getWorld().isRemote()) fail = false;
         if (context.getDirection().getReceptionSide() == LogicalSide.SERVER) {
             context.enqueueWork(() -> {
-                TileEntity entity = client.world.getWorld().getTileEntity(message.pos);
+            	//context;
+            	World world = context.getSender().world;
+                TileEntity entity = world.getTileEntity(message.pos);
                 if (entity instanceof SimFarmBlockTileEntity) {
                 	((SimFarmBlockTileEntity)entity).buttonClicked(message.index);
                 }

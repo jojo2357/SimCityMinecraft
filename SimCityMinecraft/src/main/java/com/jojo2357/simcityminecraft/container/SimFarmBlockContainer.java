@@ -25,6 +25,8 @@ public class SimFarmBlockContainer extends Container{
 		public final SimFarmBlockTileEntity tileEntity;
 	   private final IInventory hopperInventory;
 	   private int index = 0;
+	   private boolean doFarming = false;
+
 	   //private final IWorldPosCallable canInteractWithCallable;
 
 	   //public SimFarmBlockContainer(int p_i50078_1_, PlayerInventory p_i50078_2_) {
@@ -118,6 +120,14 @@ public class SimFarmBlockContainer extends Container{
 	   
 	   public void clickHappened(int index) {
 		   this.index = index;
+		   if (index == 1) doFarming = true;
+		   if (index == 2) doFarming = false;
+		   this.tileEntity.setFarming(doFarming);
 	   }
+
+	public boolean getFarming() {
+		return this.doFarming;
+		
+	}
 
 	}

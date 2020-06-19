@@ -20,6 +20,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ChestBlock;
+import net.minecraft.block.CropsBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,6 +32,7 @@ import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.tileentity.IHopper;
@@ -48,6 +50,9 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.storage.loot.LootContext;
+import net.minecraft.world.storage.loot.LootContext.Builder;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.api.distmarker.Dist;
 
@@ -61,6 +66,9 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 	private int shouldState = 1;
 	private Area area;
 	private Boolean foundArea = false;
+	private Boolean dirtPullSuccess = false;
+	
+	private SimFarmBlockContainer container;
 
 	public SimFarmBlockTileEntity() {
 		super(ModTileEntityTypes.SIM_FARM_BLOCK.get());
@@ -121,8 +129,11 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 
 	@SuppressWarnings("deprecation")
 	public void tick() {
+		dirtPullSuccess = false;
 		World worldIn = this.world.getWorld();
 		if (this.world != null && !this.world.isRemote) {
+			if (container != null)
+			//this.doFarming = container.getFarming();
 			--this.transferCooldown;
 			this.tickedGameTime = this.world.getGameTime();
 			if (chestPos == null) {
@@ -174,10 +185,12 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 					}
 				}
 			}
-			if (shouldState == 3 && isFarming()) {
+			if (shouldState == 3 && isFarming() && !this.isOnTransferCooldown()) {
+				this.setTransferCooldown(8);
 				boolean xGoPositive;
 				boolean zGoPositive;
 				BlockPos lookingPos;
+				BlockPos plantingPos;
 				if (area.getPlacedCorner().getX() > area.getGuessedCorner().getX())
 					xGoPositive = false;
 				else
@@ -189,35 +202,75 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 				int distX = Math.abs(area.getPlacedCorner().getX() - area.getGuessedCorner().getX()) - 1;
 				int distZ = Math.abs(area.getPlacedCorner().getZ() - area.getGuessedCorner().getZ()) - 1;
 				for (int farmingIndeX = 0; farmingIndeX < distX; farmingIndeX++) {
-					int realX = xGoPositive ? farmingIndeX: -farmingIndeX;
+					int realX = xGoPositive ? farmingIndeX + 1: -farmingIndeX - 1;
 					realX += area.getPlacedCorner().getX();
 					for (int farmingIndeZ = 0; farmingIndeZ < distZ; farmingIndeZ++) {
-						int realZ = zGoPositive ? farmingIndeZ + 1 : -farmingIndeZ;
+						int realZ = zGoPositive ? farmingIndeZ + 1: -farmingIndeZ - 1;
 						realZ += area.getPlacedCorner().getZ();
 						lookingPos = new BlockPos(realX, area.getPlacedCorner().getY() - 1, realZ);
-						// if (chestHasDirt) {
-						if (!(worldIn.getBlockState(lookingPos).getBlock() == Blocks.DIRT
-								|| worldIn.getBlockState(lookingPos).getBlock() == Blocks.GRASS_BLOCK)
-								&& !worldIn.hasWater(lookingPos)) {
-							System.out.println("PLACE SOME DIRT " + lookingPos);
-							if (!this.isOnTransferCooldown()) {
-								this.setTransferCooldown(0);
-								this.updateHopper(() -> {
-									return pullItems(this, this.chestDirection, Blocks.DIRT.asItem());
-								});
-								if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.AIR) {
+						plantingPos = new BlockPos(realX, area.getPlacedCorner().getY(), realZ);
+						if (!(worldIn.getBlockState(lookingPos).getBlock() == Blocks.DIRT // if there is a block,
+								|| worldIn.getBlockState(lookingPos).getBlock() == Blocks.GRASS_BLOCK 
+								|| worldIn.getBlockState(lookingPos).getBlock() == Blocks.FARMLAND)
+								&& !worldIn.hasWater(lookingPos)) {							
+							if (this.updateHopper(() -> {
+								return pullItems(this, this.chestDirection, Blocks.DIRT.asItem());
+							})) dirtPullSuccess = true;
+							if (!dirtPullSuccess) continue;
+							if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.AIR) {
+								Block block = worldIn.getBlockState(lookingPos).getBlock();
+								ItemStack item = block.getItem(worldIn, lookingPos, block.getDefaultState());
+								putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), item, chestDirection);
+								//this.transferItemsOut();
+								this.clear();
+								
+							}
+							worldIn.setBlockState(lookingPos, Blocks.DIRT.getDefaultState());
+							
+							if (dirtPullSuccess) return;
+							else continue;
+						}else if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.FARMLAND && !worldIn.hasWater(lookingPos)){ // if there is dirt but no farmland,
+							worldIn.setBlockState(lookingPos, Blocks.FARMLAND.getDefaultState());
+							return;
+						}else { // there is farmland, lets plant some shit!
+							if (worldIn.getBlockState(plantingPos).getBlock() != Blocks.WHEAT) {
+								if (worldIn.getBlockState(plantingPos).getBlock() != Blocks.AIR) {
 									Block block = worldIn.getBlockState(lookingPos).getBlock();
 									ItemStack item = block.getItem(worldIn, lookingPos, block.getDefaultState());
 									putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), item, chestDirection);
 									//this.transferItemsOut();
-									
+									this.clear();
+									worldIn.setBlockState(plantingPos, Blocks.AIR.getDefaultState());
+									return;
+								}else {
+									if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.FARMLAND) continue;										
+									if (this.updateHopper(() -> {
+										return pullItems(this, this.chestDirection, Items.WHEAT_SEEDS.asItem());
+									})) dirtPullSuccess = true;
+									if (!dirtPullSuccess) continue;
+									if (worldIn.getBlockState(lookingPos).getBlock() != Blocks.AIR) {
+										Block block = worldIn.getBlockState(lookingPos).getBlock();
+										ItemStack item = block.getItem(worldIn, lookingPos, block.getDefaultState());
+										putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), item, chestDirection);
+										//this.transferItemsOut();
+										this.clear();
+									}
+									worldIn.setBlockState(plantingPos, Blocks.WHEAT.getDefaultState());
 								}
-								worldIn.setBlockState(lookingPos, Blocks.DIRT.getDefaultState());
+								if (dirtPullSuccess) return;
+							}else {
+								if (worldIn.getBlockState(plantingPos).getBlockState() == Blocks.WHEAT.getDefaultState().with(((CropsBlock) Blocks.WHEAT).getAgeProperty(), ((CropsBlock) Blocks.WHEAT).getMaxAge())) {
+									Block block = worldIn.getBlockState(lookingPos).getBlock();
+									ItemStack item = block.getItem(worldIn, lookingPos, block.getDefaultState());
+									putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), new ItemStack(Blocks.WHEAT, 1), chestDirection);
+									putStackInInventoryAllSlots(getInventoryAtPosition(worldIn, pos), getInventoryAtPosition(worldIn, pos.offset(chestDirection)), new ItemStack(Items.WHEAT_SEEDS, 2), chestDirection);
+									//this.transferItemsOut();
+									this.clear();
+									worldIn.setBlockState(lookingPos, Blocks.AIR.getDefaultState());
+									return;
+								}
 							}
-							
-							return;
 						}
-						// }
 					}
 				}
 			}
@@ -615,7 +668,8 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 	}
 
 	protected Container createMenu(int id, PlayerInventory player) {
-		return new SimFarmBlockContainer(id, player, this);
+		this.container = new SimFarmBlockContainer(id, player, this);
+		return this.container;
 	}
 
 	@Override
@@ -652,5 +706,9 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 			this.doFarming = true;
 		if (myIndex == 2)
 			this.doFarming = false;
+	}
+	
+	public void setFarming(boolean farming) {
+		this.doFarming = farming;
 	}
 }
