@@ -172,7 +172,7 @@ public class InventoryCodeHooks
                 insertedItem = originalSize < stack.getCount();
             }
 
-            if (insertedItem)
+            /*if (insertedItem)
             {
                 if (inventoryWasEmpty && destination instanceof SimFarmBlockTileEntity)
                 {
@@ -191,7 +191,7 @@ public class InventoryCodeHooks
                         destinationHopper.setTransferCooldown(8 - k);
                     }
                 }
-            }
+            }*/
         }
 
         return stack;

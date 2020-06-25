@@ -2,6 +2,7 @@ package com.jojo2357.simcityminecraft.util;
 
 import com.jojo2357.simcityminecraft.Main;
 import com.jojo2357.simcityminecraft.client.gui.SimFarmBlockScreen;
+import com.jojo2357.simcityminecraft.client.gui.SimScreen;
 import com.jojo2357.simcityminecraft.client.gui.SimWorkBenchScreen;
 import com.jojo2357.simcityminecraft.entities.sim.render.SimRender;
 import com.jojo2357.simcityminecraft.init.ModBlocks;
@@ -24,6 +25,7 @@ public class ClientEventBusSubscriber {
 	public static void clientSetup(FMLClientSetupEvent event) {
 		ScreenManager.registerFactory(ModContainers.SIM_WORK_BENCH.get(), SimWorkBenchScreen::new);
 		ScreenManager.registerFactory(ModContainers.SIM_FARM_BLOCK.get(), SimFarmBlockScreen::new);
+		ScreenManager.registerFactory(ModContainers.SIM.get(), SimScreen::new);
 		RenderTypeLookup.setRenderLayer(ModBlocks.SIM_MARKER.get(), RenderType.getCutout());
 		RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.SIM.get(), SimRender::new);
 	}

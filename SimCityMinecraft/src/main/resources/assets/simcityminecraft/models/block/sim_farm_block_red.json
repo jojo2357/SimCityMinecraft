@@ -1,8 +1,8 @@
 {
-    "parent": "block/orientable",
+    "parent": "simcityminecraft:block/orientable_with_bottom",
     "textures": {
-        "top": "simcityminecraft:blocks/sim_farm_block_red",
-        "front": "simcityminecraft:blocks/sim_farm_block_red_front",
-        "side": "simcityminecraft:blocks/sim_farm_block_red"
+        "top": "simcityminecraft:blocks/sim_farm_block_top",
+        "front": "simcityminecraft:blocks/sim_farm_block_front_red",
+        "side": "simcityminecraft:blocks/sim_farm_block_side"
     }
 }

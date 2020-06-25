@@ -12,8 +12,13 @@ public class Area {
 	private BlockPos guessedCorner;
 	private boolean inUse = false;
 	
+	//private ArrayList<Integer> places;
+	
 	private int y;
 	private int cornerIndex;
+	private int width;
+	private int length;
+	private int area;
 	
 	public boolean taken() {
 		return inUse;
@@ -24,11 +29,44 @@ public class Area {
 	}
 	
 	public Area(ArrayList<BlockPos> places) {
+		/*for (BlockPos place : places) {
+			this.places.add(place.getX());
+			this.places.add(place.getZ());
+		}*/
+
 		findCorner(places);
 		this.y = this.placedCorner.getY();
+		//this.places.add(this.y);
 		findMissingCorner(places);
+		this.length = Math.abs(this.placedCorner.getX() - this.guessedCorner.getX()) - 1;
+		this.width = Math.abs(this.placedCorner.getZ() - this.guessedCorner.getZ()) - 1;
+		this.area = this.length * this.width;
 	}
 	
+	/*public Area(int[] intArray) {
+		this(translate(intArray));
+		for (int i : intArray)
+		this.places.add(i);
+	}
+
+	private static ArrayList<BlockPos> translate(int[] intArray) {
+		ArrayList<BlockPos> out = new ArrayList<BlockPos>();
+		int y = intArray[intArray.length - 1];
+		for (int i = 0; i < 3; i++)
+		out.add(new BlockPos(intArray[2 * i], y, intArray[2 * i + 1]));
+		return out;
+	}*/
+
+	public Area(int PlacedX, int PlacedZ, int GuessedX, int GuessedZ, int Yplane) {
+		this.placedCorner = new BlockPos(PlacedX, Yplane, PlacedZ);
+		this.guessedCorner = new BlockPos(GuessedX, Yplane, GuessedZ);
+		this.b = new BlockPos(PlacedX, Yplane, GuessedZ);
+		this.c = new BlockPos(GuessedX, Yplane, PlacedZ);
+		this.length = Math.abs(PlacedX - GuessedX) - 1;
+		this.width = Math.abs(PlacedZ - GuessedZ) - 1;
+		this.area = this.length * this.width;
+	}
+
 	private void findMissingCorner(ArrayList<BlockPos> places) {
 		if (this.placedCorner.getX() == b.getX()) this.guessedCorner = new BlockPos(c.getX(), this.y, b.getZ());
 		if (this.placedCorner.getX() == c.getX()) this.guessedCorner = new BlockPos(b.getX(), this.y, c.getZ());
@@ -79,4 +117,25 @@ public class Area {
 	public BlockPos getC() {
 		return c;
 	}
+
+	public int getWidth() {
+		return this.width;
+	}
+	
+	public int getLength() {
+		return this.length;
+	}
+	
+	public int getArea() {
+		return this.area;
+	}
+
+	public Area markNotTaken() {
+		this.inUse = false;
+		return this;
+	}
+	
+	/*public ArrayList<Integer> getPlaces(){
+		return this.places;
+	}*/
 }

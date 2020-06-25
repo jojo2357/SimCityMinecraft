@@ -83,6 +83,7 @@ public class SimFarmBlockBlock extends ContainerBlock {
       if (state.getBlock() != newState.getBlock()) {
          TileEntity tileentity = worldIn.getTileEntity(pos);
          if (tileentity instanceof SimFarmBlockTileEntity) {
+        	 ((SimFarmBlockTileEntity) tileentity).releaseArea();
             InventoryHelper.dropInventoryItems(worldIn, pos, (SimFarmBlockTileEntity)tileentity);
             worldIn.updateComparatorOutputLevel(pos, this);
          }
@@ -137,14 +138,6 @@ public class SimFarmBlockBlock extends ContainerBlock {
 
    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
       builder.add(FACING, COLORSTATE);
-   }
-
-   public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
-      TileEntity tileentity = worldIn.getTileEntity(pos);
-      if (tileentity instanceof SimFarmBlockTileEntity) {
-         ((SimFarmBlockTileEntity)tileentity).onEntityCollision(entityIn);
-      }
-
    }
 
    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
