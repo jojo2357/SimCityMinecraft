@@ -1,130 +1,171 @@
 package com.jojo2357.simcityminecraft.objects.blocks;
 
-import javax.annotation.Nullable;
-
-import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
+import com.jojo2357.simcityminecraft.Main;
 import com.jojo2357.simcityminecraft.tileentity.SimWorkBenchTileEntity;
-//import com.jojo2357.simcityminecraft.util.handler.TickHandler;
+import com.jojo2357.simcityminecraft.util.handler.BuildingLoader;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.ChestTileEntity;
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.pathfinding.PathType;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.IProperty;
+import net.minecraft.state.IntegerProperty;
+import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Mirror;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-public class SimWorkBenchBlock extends Block implements ITickableTileEntity{
-	
-	private BlockPos pos;
-	private World world;
+public class SimWorkBenchBlock extends ContainerBlock {
+	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final IntegerProperty COLORSTATE = IntegerProperty.create("colorstate", 1, 3);
 
-	public SimWorkBenchBlock(Properties properties) {
+	public SimWorkBenchBlock(Block.Properties properties) {
 		super(properties);
+		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(COLORSTATE, 1));
 	}
 
-	@Override
-	public boolean hasTileEntity(BlockState state) {
+	public BlockState getStateForPlacement(BlockItemUseContext context) {
+		Direction direction = context.getFace().getOpposite();
+		return this.getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite())
+				.with(COLORSTATE, 1);
+	}
+
+	public TileEntity createNewTileEntity(IBlockReader worldIn) {
+		return new SimWorkBenchTileEntity();
+	}
+
+	/**
+	 * Called by ItemBlocks after a block is set in the world, to allow post-place
+	 * logic
+	 */
+	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		if (stack.hasDisplayName()) {
+			TileEntity tileentity = worldIn.getTileEntity(pos);
+			if (tileentity instanceof SimWorkBenchTileEntity) {
+				((SimWorkBenchTileEntity) tileentity).setCustomName(stack.getDisplayName());
+			}
+		}
+
+	}
+
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player,
+			Hand handIn, BlockRayTraceResult hit) {
+		if (worldIn.isRemote) {
+			return ActionResultType.SUCCESS;
+		} else {
+			//if (!Main.buildingLoader.buildingsLoaded)
+				//Main.buildingLoader.LoadAll(worldIn);
+			TileEntity tileentity = worldIn.getTileEntity(pos);
+			if (tileentity instanceof SimWorkBenchTileEntity) {
+				Main.buildingLoader.resetAndReload(worldIn);
+				//((SimWorkBenchTileEntity)tileentity).makeStructure(Main.buildingLoader.residentialBuildings.get(0).getBlueprint(), worldIn, Main.buildingLoader.residentialBuildings.get(0).getStates());
+				NetworkHooks.openGui((ServerPlayerEntity) player, (SimWorkBenchTileEntity) tileentity, pos);
+				// player.openContainer((SimFarmBlockTileEntity)tileentity);
+				player.addStat(Stats.INSPECT_HOPPER);
+			}
+
+			return ActionResultType.SUCCESS;
+		}
+	}
+
+	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (state.getBlock() != newState.getBlock()) {
+			TileEntity tileentity = worldIn.getTileEntity(pos);
+			if (tileentity instanceof SimWorkBenchTileEntity) {
+				InventoryHelper.dropInventoryItems(worldIn, pos, (SimWorkBenchTileEntity) tileentity);
+				worldIn.updateComparatorOutputLevel(pos, this);
+			}
+
+			super.onReplaced(state, worldIn, pos, newState, isMoving);
+		}
+	}
+
+	/**
+	 * The type of render function called. MODEL for mixed tesr and static model,
+	 * MODELBLOCK_ANIMATED for TESR-only, LIQUID for vanilla liquids, INVISIBLE to
+	 * skip all rendering
+	 * 
+	 * @deprecated call via {@link IBlockState#getRenderType()} whenever possible.
+	 *             Implementing/overriding is fine.
+	 */
+	public BlockRenderType getRenderType(BlockState state) {
+		return BlockRenderType.MODEL;
+	}
+
+	/**
+	 * @deprecated call via {@link IBlockState#hasComparatorInputOverride()}
+	 *             whenever possible. Implementing/overriding is fine.
+	 */
+	public boolean hasComparatorInputOverride(BlockState state) {
 		return true;
 	}
 
-	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-		return ModTileEntityTypes.SIM_WORK_BENCH.get().create();
-	}
-	
-	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-		//TickHandler.addBlock(this, pos);
-		this.pos = pos;
-		this.world = worldIn;
+	/**
+	 * @deprecated call via
+	 *             {@link IBlockState#getComparatorInputOverride(World,BlockPos)}
+	 *             whenever possible. Implementing/overriding is fine.
+	 */
+	public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
+		return Container.calcRedstone(worldIn.getTileEntity(pos));
 	}
 
-	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player,
-			Hand handIn, BlockRayTraceResult result) {
-		if (!worldIn.isRemote) {
-			//chestFind(worldIn, pos);
-			TileEntity tile = worldIn.getTileEntity(pos);
-			if (tile instanceof SimWorkBenchTileEntity) {
-				NetworkHooks.openGui((ServerPlayerEntity) player, (SimWorkBenchTileEntity) tile, pos);
-				return ActionResultType.SUCCESS;
-			}
-		}
-		return ActionResultType.FAIL;
+	/**
+	 * Returns the blockstate with the given rotation from the passed blockstate. If
+	 * inapplicable, returns the passed blockstate.
+	 * 
+	 * @deprecated call via {@link IBlockState#withRotation(Rotation)} whenever
+	 *             possible. Implementing/overriding is fine.
+	 */
+	public BlockState rotate(BlockState state, Rotation rot) {
+		return state.with(FACING, rot.rotate(state.get(FACING)));
 	}
 
-	@Override
-	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-		System.out.println("I died @ " + pos + " " + this.pos);
-		//TickHandler.removeBlock(pos);
-		if (state.getBlock() != newState.getBlock()) {
-			TileEntity te = worldIn.getTileEntity(pos);
-			if (te instanceof SimWorkBenchTileEntity) {
-				InventoryHelper.dropItems(worldIn, pos, ((SimWorkBenchTileEntity) te).getItems());
-				
-			}
-		}
+	/**
+	 * Returns the blockstate with the given mirror of the passed blockstate. If
+	 * inapplicable, returns the passed blockstate.
+	 * 
+	 * @deprecated call via {@link IBlockState#withMirror(Mirror)} whenever
+	 *             possible. Implementing/overriding is fine.
+	 */
+	public BlockState mirror(BlockState state, Mirror mirrorIn) {
+		return state.rotate(mirrorIn.toRotation(state.get(FACING)));
 	}
 
-	@Override
-	public void tick() {
-		// TODO Auto-generated method stub
-		
+	protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+		builder.add(FACING, COLORSTATE);
 	}
-	   
-	/*public void tick(World worldIn, BlockPos pos) {
-		//System.out.println("tock");
-		if (chestSpot == null) {
-			if (worldIn.getTileEntity(pos.north()) instanceof ChestTileEntity) {
-				System.out.println("Chest Detected");
-				chestSpot = pos.north();
-			}
-			if (worldIn.getTileEntity(pos.south()) instanceof ChestTileEntity) {
-				System.out.println("Chest Detected");
-				chestSpot = pos.south();
-			}
-			if (worldIn.getTileEntity(pos.east()) instanceof ChestTileEntity) {
-				System.out.println("Chest Detected");
-				chestSpot = pos.east();
-			}
-			if (worldIn.getTileEntity(pos.west()) instanceof ChestTileEntity) {
-				System.out.println("Chest Detected");
-				chestSpot = pos.west();
-			}
-		}else {
-			if (!(worldIn.getTileEntity(chestSpot) instanceof ChestTileEntity)) {
-				System.out.println("Chest Lost from " + chestSpot + " " + this.chestSpot);
-				chestSpot = null;
-			}
-		}
-	}*/
-	
-	/*public void tick(BlockPos pos) {
-		//System.out.println("tick");
-		tick(this.world.getWorld(), pos);
-	}*/
-	
-	/*public void chestFind(World worldIn, BlockPos pos) {
-		System.out.println("tock");
-		if (worldIn.getTileEntity(pos.north()) instanceof ChestTileEntity) {
-			System.out.println("Chest Detected");
-			this.chestSpot = pos.north();
-		}
-	}*/
 
-	/*public void tick() {
-		System.out.println("Tick");
-		this.tick(this.pos);
-	}*/
+	public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
+		return false;
+	}
+
+	public static IntegerProperty getColorState() {
+		return COLORSTATE;
+	}
+
+	public static DirectionProperty getFacing() {
+		return FACING;
+	}
 }

@@ -13,7 +13,7 @@ public class ModItems {
 	public static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(ForgeRegistries.ITEMS,
 			Main.MOD_ID);
 	
-	//public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item",
-			//() -> new Item(new Item.Properties().group(TutorialItemGroup.instance)));
+	public static final RegistryObject<Item> BUILDING_CONFIGURE = ITEMS.register("building_configure",
+			() -> new Item(new Item.Properties().group(TutorialItemGroup.instance)));
 			
 }

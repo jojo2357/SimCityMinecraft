@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import com.jojo2357.simcityminecraft.Main;
 import com.jojo2357.simcityminecraft.container.SimFarmBlockContainer;
+import com.jojo2357.simcityminecraft.entities.sim.Jobs;
 import com.jojo2357.simcityminecraft.entities.sim.Sim;
 import com.jojo2357.simcityminecraft.init.ModBlocks;
 import com.jojo2357.simcityminecraft.init.ModTileEntityTypes;
@@ -13,7 +14,8 @@ import com.jojo2357.simcityminecraft.objects.blocks.SimFarmBlockBlock;
 import com.jojo2357.simcityminecraft.objects.items.HopperItemHandler;
 import com.jojo2357.simcityminecraft.objects.items.InventoryCodeHooks;
 import com.jojo2357.simcityminecraft.util.handler.Area;
-import com.jojo2357.simcityminecraft.util.handler.AreaHandler;
+import com.jojo2357.simcityminecraft.util.handler.managers.AreaHandler;
+import com.jojo2357.simcityminecraft.util.handler.managers.Farms;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -74,6 +76,8 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 
 	private SimFarmBlockContainer container;
 	private String mySimName = "";
+	
+	private Jobs job = Jobs.FARMER;
 
 	public SimFarmBlockTileEntity() {
 		super(ModTileEntityTypes.SIM_FARM_BLOCK.get());
@@ -200,6 +204,8 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 		dirtPullSuccess = false;
 		World worldIn = this.world.getWorld();
 		if (this.world != null && !this.world.isRemote) {
+			if (!Farms.farms.contains(this))
+				Farms.farms.add(this);
 			if (this.workingSim != null)
 				this.workingSim.setWorking(this.doFarming, this.pos);
 			else {
@@ -211,7 +217,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 							this.workingSim = find;
 				if (this.workingSim != null) {
 					this.mySimIndex = Main.simRegistry.getSims().indexOf(this.workingSim);
-					this.workingSim.setJob();
+					this.workingSim.setJob(this.job, this.pos);
 					this.hasASim = true;
 				}
 			}
@@ -323,8 +329,8 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 										chestDirection);
 								// this.transferItemsOut();
 								this.clear();
-								Main.KredsManager.addKreds(-0.01D);
-
+								Main.KredsManager.addKreds(-this.job.WAGE);
+								this.workingSim.payTheSim(this.job.WAGE);
 							}
 							worldIn.setBlockState(lookingPos, Blocks.DIRT.getDefaultState());
 
@@ -431,7 +437,7 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 		});
 	}
 
-	public boolean pullItems(IHopper hopper, Direction directionIn, Item itemRequested) {
+	private boolean pullItems(IHopper hopper, Direction directionIn, Item itemRequested) {
 		Boolean ret = InventoryCodeHooks.extractHook(hopper, directionIn, itemRequested);
 		if (ret != null)
 			return ret;
@@ -629,10 +635,10 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 				this.workingSim = Main.simRegistry.getSims().get(myIndex - 3);
 				this.mySimIndex = myIndex - 3;
 				this.hasASim = true;
-				this.workingSim.setJob();
+				this.workingSim.setJob(this.job, this.pos);
 				this.mySimName = this.workingSim.getMyName();
 			}else {
-				this.workingSim.unsetJob();
+				this.workingSim.setJob(Jobs.UNEMPLOYED, null);
 				this.workingSim = null;
 				this.mySimIndex = -1;
 				this.hasASim = false;
@@ -713,6 +719,10 @@ public class SimFarmBlockTileEntity extends LockableLootTileEntity implements IH
 
 	public int mySimIndex() {
 		return this.mySimIndex;
+	}
+	
+	public BlockPos getChestPos() {
+		return this.chestPos;
 	}
 
 }

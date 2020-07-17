@@ -2,15 +2,19 @@ package com.jojo2357.simcityminecraft.entities.sim;
 
 import java.util.ArrayList;
 
-public final class Jobs{
+public enum Jobs{
 	
-	public static ArrayList<Jobs> JobList = new ArrayList<Jobs>();
-	public static final Jobs UNEMPLOYED = new Jobs(0, 0F);
-	public static final Jobs SHEPARD = new Jobs(1, 0.5F);
-	public static final Jobs BUILDER = new Jobs(2, 0.1F);
+	UNEMPLOYED(0, 0F),
+	SHEPARD(1, 0.5F),
+	BUILDER(2, 0.1F),
+	GROCER(3, 1F),
+	MINER(4, 0.01F), 
+	FARMER(5, 0.02F);
 	
-	private final int ID;
-	private final float WAGE;
+	public final int ID;
+	public final float WAGE;
+	
+	public final int jobs = 4;
 	
 	private Jobs(int IdIn, float wage) {
 		this.ID = IdIn;
@@ -18,6 +22,8 @@ public final class Jobs{
 	}
 	
 	public static Jobs getJobFromId(int findID) {
+		ArrayList<Jobs> JobList = new ArrayList<Jobs>();
+		JobList.add(UNEMPLOYED);JobList.add(SHEPARD);JobList.add(BUILDER);JobList.add(GROCER);
 		for (int i = 0; i < JobList.size(); i++) {
 			if (JobList.get(i).ID == findID) return JobList.get(i);
 		}

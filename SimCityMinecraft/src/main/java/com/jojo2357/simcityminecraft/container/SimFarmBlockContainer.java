@@ -44,14 +44,7 @@ public class SimFarmBlockContainer extends Container {
 	public SimFarmBlockContainer(final int windowId, final PlayerInventory playerInventory, final PacketBuffer data) {
 		this(windowId, playerInventory, getTileEntity(playerInventory, data));
 	}
-
-	@Nonnull
-	public CompoundNBT getUpdateTag() {
-		CompoundNBT updateTag = new CompoundNBT();
-		this.hopperInventory.getStackInSlot(0).write(updateTag);
-		return updateTag;
-	}
-
+	
 	public SimFarmBlockContainer(int windowId, PlayerInventory p_i50079_2_, SimFarmBlockTileEntity p_i50079_3_) {
 		super(ModContainers.SIM_FARM_BLOCK.get(), windowId);
 		this.tileEntity = p_i50079_3_;
@@ -85,6 +78,13 @@ public class SimFarmBlockContainer extends Container {
 		 * * 18, 109)); }
 		 */
 
+	}
+	
+	@Nonnull
+	public CompoundNBT getUpdateTag() {
+		CompoundNBT updateTag = new CompoundNBT();
+		this.hopperInventory.getStackInSlot(0).write(updateTag);
+		return updateTag;
 	}
 	
 	public void read(CompoundNBT compound) {

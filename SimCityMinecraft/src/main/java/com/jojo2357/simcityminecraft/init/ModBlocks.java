@@ -1,15 +1,15 @@
 package com.jojo2357.simcityminecraft.init;
 
 import com.jojo2357.simcityminecraft.Main;
+import com.jojo2357.simcityminecraft.objects.blocks.SimResidentialBuildingBlock;
+import com.jojo2357.simcityminecraft.objects.blocks.SimCommercialBuildingBlock;
 import com.jojo2357.simcityminecraft.objects.blocks.SimFarmBlockBlock;
+import com.jojo2357.simcityminecraft.objects.blocks.SimMineBlockBlock;
 import com.jojo2357.simcityminecraft.objects.blocks.SimMarker;
 import com.jojo2357.simcityminecraft.objects.blocks.SimWorkBenchBlock;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.TorchBlock;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
+import net.minecraft.block.material.Material; 
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -27,6 +27,15 @@ public class ModBlocks {
 	
 	public static final RegistryObject<Block> SIM_FARM_BLOCK = BLOCKS.register("sim_farm_block",() -> new SimFarmBlockBlock(
 			SimFarmBlockBlock.Properties.create(Material.IRON)));
+	
+	public static final RegistryObject<Block> SIM_MINE_BLOCK = BLOCKS.register("sim_mine_block",() -> new SimMineBlockBlock(
+			SimMineBlockBlock.Properties.create(Material.IRON)));
+	
+	public static final RegistryObject<Block> SIM_RESIDENTIAL_BUILDING_BLOCK = BLOCKS.register("sim_residential_building_block",() -> new SimResidentialBuildingBlock(
+			SimResidentialBuildingBlock.Properties.create(Material.IRON)));
+	
+	public static final RegistryObject<Block> SIM_COMMERCIAL_BUILDING_BLOCK = BLOCKS.register("sim_commercial_building_block",() -> new SimCommercialBuildingBlock(
+			SimCommercialBuildingBlock.Properties.create(Material.IRON)));
 	
 	public static final RegistryObject<Block> SIM_LIGHT_WHITE = BLOCKS.register("sim_light_white", () -> new Block(
 			Block.Properties.create(Material.WOOD).lightValue(15)));

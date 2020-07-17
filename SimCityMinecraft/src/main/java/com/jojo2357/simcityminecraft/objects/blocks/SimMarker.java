@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import com.jojo2357.simcityminecraft.Main;
 import com.jojo2357.simcityminecraft.init.ModBlocks;
-import com.jojo2357.simcityminecraft.util.handler.AreaHandler;
+import com.jojo2357.simcityminecraft.util.handler.managers.AreaHandler;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
